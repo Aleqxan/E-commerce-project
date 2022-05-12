@@ -4,20 +4,40 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
 	"github.com/Aleqxan/E-commerce-project/models"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func HashPassword(password string) string {
+var UserCollection  *mongo.Collection = database.UserData(database.Client, "Users")
+var ProductCollection *mongo.Collection =  database.ProductData(database.Client, "Products")
+var Validate = validator.New()
 
+func HashPassword(password string) string {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		log.Panic(err)
+	}
+	return string(bytes)
 }
 
 func VerifyPassword(userPassword string, givenPassword string) (bool, string) {
+	err := bycrypt.CompareHashAndPassword([]byte(givenPassword), []byte(userPassword))
+	valid := true 
+	msg := ""
 
+	if err != nil {
+		msg = "Login or Password is incorrect"
+		valid = false
+	}
+	return valid, msg
 }
 
 func Signup() gin.HandlerFunc {
@@ -129,8 +149,77 @@ func ProductViewerAdmin() gin.HandlerFunc {
 
 func SearchProduct() gin.HandlerFunc {
 
+	return func(c *gin.Context) {
+
+		var productlist []models.Product
+		var  ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		cursor, err := ProductCollection.Find(ctx, bson.D{{}})
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, "Something went wrong, please try after some time")
+			return
+		}
+
+		err = cursor.All(ctx, &productlist)
+
+		if err != nil {
+			log.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+	defer cursor.Close()
+
+	if err := cursor.err(); err != nil{
+		log.Println(err)
+		c.IndentedJSON(400, "Invalid")
+	}
+	defer cancel()
+	c.IndentedJSON(200, productlist)
+	}
 }
 
 func SearchProductByQuery() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var SearchProducts []models.Product 
+		queryParam := c.Query("name")
 
+		//Want to check if it's empty
+
+		if queryParam == "" {
+			log.Println("query is empty")
+			c.Header("Content-Type", "application/json")
+			c.JSON (HTTP.StatusNotFound, gin.H("Error":"Invalid search index"))
+			c.Abort()
+			return
+		}
+
+		car ctx, cancel = context.WithTimeOut(Context.Background(), 100*time.Second)
+		defer cancel()
+
+		searchquerydb, err := ProductCollection.Find(ctx, bson.M("product_name": bson.M{"$regex":queryParam}))
+
+		if err != nil{
+			c.IndentedJSON(404, "Something went wrong fetching the data")
+			return
+		}
+
+		err = searchquerydb.All(ctx, &searchproducts)
+		if err != nil {
+			log.Println(err)
+			c.IndentedJSON(400, "Invalid")
+			return
+		}
+
+		defer searchquerydb.Close(ctx)
+
+		if err := searchquerydb.Err(); err != nil {
+			log.Println(err)
+			c.IndentedJSON(400, "Invalid request")
+		}
+
+		defer cancel()
+		c.IndentedJSON(200, searchproducts)
+	}
 }
