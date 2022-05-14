@@ -6,6 +6,8 @@ import(
 	"github.com/Aleqxan/E-commerce-project/middleware"
 	"github.com/Aleqxan/E-commerce-project/routes"
 	"github.com/gin-gonic/gin"
+	"log"
+	"os"
 )
 
 func main() {

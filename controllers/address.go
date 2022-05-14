@@ -1,9 +1,11 @@
 package controllers
 
 import (
-	"net"
 	"net/http"
 	"time"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/Aleqxan/E-commerce-project/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -45,7 +47,7 @@ func AddAddress() gin.HandlerFunc {
 
 		var addressinfo []bson.M
 		pointcursor.All(ctx, &addressinfo); err != nil {
-			panic(err)
+			panic(err),
 		}
 
 		var size int32
@@ -55,7 +57,7 @@ func AddAddress() gin.HandlerFunc {
 		}
 		if size < 2 {
 			filter := bson.D{primitive.E{Key: "_id", Value: address}}
-			update := bson.D{{Key: "$push", Value: bson.D{primitive.E{Key: "address", Value: addresses}}}
+			update := bson.D{{Key: "$push", Value: bson.D{primitive.E{Key: "address", Value: addresses}}},
 			_, err := UserCollection.UpdateOne(ctx, filter, update)
 			if err != nil {
 				fmt.Println(err)
