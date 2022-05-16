@@ -27,7 +27,7 @@ func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo
 		log.Println(err)
 		return ErrCantFindProduct
 	}
-	var productCart []models.ProductUser
+	var productcart []models.ProductUser
 	err = searchfromdb.All(ctx, &productcart)
 	if err != nil {
 		log.Println(err)
@@ -41,7 +41,7 @@ func AddProductToCart(ctx context.Context, prodCollection, userCollection *mongo
 	}
 
 	filter := bson.D{primitive.E{Key:"_id", Value: id}}
-	update := bson.D{{Key:"$push", Value: bson.D{primitive.E{Key:"usercart", Value: bson.D{{Key:"$each", Value:productCart}}}}}}
+	update := bson.D{{Key:"$push", Value: bson.D{primitive.E{Key:"usercart", Value: bson.D{{Key:"$each", Value:productcart}}}}}}
 
 	_, err = userCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -58,7 +58,7 @@ func RemoveCartItem(ctx context.Context, prodCollection, userCollection *mongo.C
 	}
 	filter := bson.D{primitive.E{Key:"_id", Value: id}}
 	update := bson.M{"$pull":bson.M{"usercart": bson.M{"_id":productID}}}
-	_, err = UpdateMany(ctx, filter, update)
+	_, err = userCollection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		return ErrCantRemoveItemCart
 	}
@@ -151,9 +151,9 @@ func InstantBuyer(ctx context.Context, prodCollection, userCollection *mongo.Col
 	var product_details models.ProductUser
 	var order_detail models.Order
 
-	order_detail.Order_ID = primitive.NewObject()
-	orders_details.Ordered_At = time.Now()
-	order_deatil.Order_Cart = make([]models.ProductUser, 0)
+	orders_detail.Order_ID = primitive.NewObject()
+	orders_detail.Ordered_At = time.Now()
+	orders_detail.Order_Cart = make([]models.ProductUser, 0)
 	orders_detail.Payment_Method.COD = true
 	err = prodCollection.FindOne(ctx, bson.D{primitive.E{Key:"_id", Value: productID}}).Decode(&product_details)
 	if err != nil {

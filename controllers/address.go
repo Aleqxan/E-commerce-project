@@ -22,7 +22,7 @@ func AddAddress() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		addresses, err := ObjectIDFromHex(user_id)
+		addresses, err := primitive.ObjectIDFromHex(user_id)
 		if err != nil {
 			c.IndentedJSON(500, "Internal server error")
 		}

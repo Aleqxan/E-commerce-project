@@ -1,0 +1,19 @@
+version: '1.1'
+
+services: 
+
+  mongo:
+    image: mongo:5.0.3
+    ports:
+      - 27017:27017
+    environment:
+    MONGO_INITID_ROOT_USERNAME: dev
+    MONGO_INITID_ROOT_USERNAME: doxxtestpassword
+
+  mongo-express:
+    ports:
+      - 8081:8081
+      environment:
+        ME_CONFIG_MONGO_INITID_ROOT_USERNAME: dev
+        ME_MONGO_INITID_ROOT_USERNAME: doxxtestpassword
+        ME_CONFIG_MONGODB_URL: mongodb://dev:doxxtestpassword@mongo:27017/
